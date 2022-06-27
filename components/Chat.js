@@ -1,17 +1,46 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Platform, KeyboardAvoidingView } from 'react-native';
+import { GiftedChat } from 'react-native-gifted-chat';
 
 export default class Chat extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            name: '',
-            backgroundColor: ''
+            messages: []
         };
     }
-    setBackgroundColor(color) {
-        this.setState({ backgroundColor: color })
+
+    componentDidMount() {
+        this.setState({
+            messages: [
+                {
+                    _id: 1,
+                    text: 'Hello developer',
+                    createdAt: new Date(),
+                    user: {
+                        _id: 2,
+                        name: 'React Native',
+                        avatar: 'https://placeimg.com/140/140/any'
+                    },
+                },
+
+                //code for a system message
+                {
+                    _id: 2,
+                    text: 'You have entered the chat',
+                    createdAt: new Date(),
+                    system: true,
+                },
+
+            ],
+        })
+    }
+    // called when a user sends a message
+    onSend(messages = []) {
+        this.setState((previousState) => ({
+            messages: GiftedChat.append(previousState.messages, messages),
+        }));
     }
 
     render() {
@@ -21,27 +50,24 @@ export default class Chat extends React.Component {
         //sets navigation title to users name
         this.props.navigation.setOptions({ title: name });
 
-        let backgroundColor = this.props.route.params.backgroundColor
+        //sets background color
+        let bgColor = this.props.route.params.bgColor;
 
         return (
 
-            <View style={{ backgroundColor: backgroundColor, height: '100%' }}>
-                <Text>
-                    Welcome: {this.state.name}
-                </Text>
+            <View style={{ flex: 1, backgroundColor: bgColor }}>
+                <GiftedChat
+                    messages={this.state.messages}
+                    onSend={(messages) => this.onSend(messages)}
+                    user={{
+                        _id: 1,
+                    }}
+                />
+                {/*fixes out of place keyboard */}
+                {Platform.OS === 'android' ? <KeyboardAvoidingView behavior='height' /> : null}
+
             </View>
 
         )
     }
 }
-
-const styles = StyleSheet.create({
-
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-
-});
