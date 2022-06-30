@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Text, ImageBackground, TouchableOpacity, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { View, TextInput, Text, ImageBackground, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView } from 'react-native';
 import BackgroundImage from '../assets/background-image.png'
 
 export default class Start extends React.Component {
