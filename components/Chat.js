@@ -32,7 +32,7 @@ export default class Chat extends React.Component {
             measurementId: "G-ZNBFNX5VLM"
         };
 
-        //connected firebase database
+        //connected firebase database-stores and retrieves chat messages user sends
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         };
@@ -86,23 +86,12 @@ export default class Chat extends React.Component {
         });
     };
 
-    // called when a user sends a message
-    // onSend(messages = []) {
-    //     this.setState((previousState) => ({
-    //         messages: GiftedChat.append(previousState.messages, messages),
-    //     }));
-    // }
-
-    //when a message is sent, save its current state into asyncStorage
+    //called when a user sends a message
     onSend(messages = []) {
-        this.setState(previousState => ({
+        this.setState((previousState) => ({
             messages: GiftedChat.append(previousState.messages, messages),
-        }), () => {
-            // add messages to local AsyncStorage
-            // this.addMessage();
-        })
-    }
-
+        }));
+    };
 
     onCollectionUpdate = (querySnapshot) => {
         const messages = [];
