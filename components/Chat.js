@@ -41,6 +41,37 @@ export default class Chat extends React.Component {
         this.referenceChatMessages = firebase.firestore().collection("messages");
     };
 
+    async getMessages() {
+        let messages = '';
+        try {
+            messages = await AsyncStorage.getItem('messages') || [];
+            this.setState({
+                messages: JSON.parse(messages)
+            });
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
+    async saveMessages() {
+        try {
+            await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
+    async deleteMessages() {
+        try {
+            await AsyncStorage.removeItem('messages');
+            this.setState({
+                messages: []
+            })
+        } catch (error) {
+            console.log(error.message);
+        }
+    }
+
 
     componentDidMount() {
         //set screen title to props.name
@@ -48,6 +79,11 @@ export default class Chat extends React.Component {
 
         //sets navigation title to users name
         this.props.navigation.setOptions({ title: name });
+
+        this.getMessages();
+
+        // create a reference to the active user's messages
+        this.referenceChatMessages = firebase.firestore().collection('messages');
 
         //listen to authentication events, sign in anonymously
         this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
@@ -57,15 +93,12 @@ export default class Chat extends React.Component {
             this.setState({
                 uid: user.uid,
                 messages: [],
-                user: {
-                    _id: user.uid,
-                    name: name,
-                },
-                loggedInText: "Please wait while you're being logged in",
+                // user: {
+                //     uid: user.uid,
+                //     name: name,
+                // },
+                // loggedInText: "Hello there! Welcome",
             });
-
-            // create a reference to the active user's messages
-            this.referenceChatMessages = firebase.firestore().collection('messages').where("uid", "==", this.state.uid);
 
             this.unsubscribe = this.referenceChatMessages
                 .orderBy('createdAt', 'desc')
@@ -90,9 +123,12 @@ export default class Chat extends React.Component {
     onSend(messages = []) {
         this.setState((previousState) => ({
             messages: GiftedChat.append(previousState.messages, messages),
-        }));
+        }), () => {
+            this.saveMessages();
+        });
     };
 
+    //querySnapshot is a snapshot of all data currently in the collection
     onCollectionUpdate = (querySnapshot) => {
         const messages = [];
         //go through each document
