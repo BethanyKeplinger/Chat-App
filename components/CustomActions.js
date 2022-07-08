@@ -12,7 +12,6 @@ import firestore from 'firebase';
 export default class CustomActions extends React.Component {
 
     //lets user pick an image from devices image library
-
     imagePicker = async () => {
         //expo permission
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -20,7 +19,7 @@ export default class CustomActions extends React.Component {
             if (status === 'granted') {
                 //pick image
                 const result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images, //only images are allowed
                 }).catch((error) => console.log(error));
                 //canceled process
                 if (!result.cancelled) {
@@ -32,6 +31,79 @@ export default class CustomActions extends React.Component {
             console.log(error.message);
         }
     };
+
+    takePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        try {
+            if (status === 'granted') {
+                const result = await ImagePicker.launchCameraAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                }).catch((error) => console.log(error));
+
+                if (!result.cancelled) {
+                    const imageUrl = await this.uploadImage(result.uri);
+                    this.props.onSend({ image: imageUrl });
+                }
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
+    getLocation = async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        try {
+            if (status === 'granted') {
+                const result = await Location.getCurrentPositionAsync({})
+                    .catch((error) => console.log(error)
+                    );
+
+                // const longitude = JSON.stringify(result.coords.longitude);
+                // const altitude = JSON.stringify(result.coords.latitude);
+
+                if (result) {
+                    this.props.onSend({
+                        location: {
+                            longitude: result.coords.longitude,
+                            latitude: result.coords.latitude,
+                        },
+                    });
+                }
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+
+    //uploads image to firebase as a blob
+    uploadImageFetch = async (uri) => {
+        const blob = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                resolve(xhr.response);
+            };
+            xhr.onerror = function (e) {
+                console.log(e);
+                reject(new TypeError('Network request failed'))
+            };
+            xhr.responseType = 'blob';
+            xhr.open('GET', uri, true);
+            xhr.send(null);
+        });
+
+        const ImageNameBefore = uri.split('/');
+        const ImageName = ImageNameBefore[ImageNameBefore.length - 1];
+
+        const ref = firebase.storage().ref().child(`images/${ImageName}`);
+
+        const snapshot = await ref.put(blob);
+
+        blob.close();
+
+        return await snapshot.ref.getDownloadURL();
+    };
+
+
 
     onActionPress = () => {
         const options = ['Choose From Library', 'Take Picture', 'Send Location', 'Cancel'];
@@ -50,10 +122,11 @@ export default class CustomActions extends React.Component {
                     case 1:
                         console.log('user wants to take a photo');
 
-                        return;
+                        return this.takePhoto();
                     case 2:
                         console.log('user wants to get their location');
-                    default:
+
+                        return this.getLocation();
                 }
             },
         );
@@ -63,12 +136,20 @@ export default class CustomActions extends React.Component {
 
     render() {
         return (
-            <TouchableOpacity style={[styles.container]} onPress={this.onActionPress}>
+            <TouchableOpacity
+                accessible={true}
+                accessibilityLabel='More Options'
+                accessibilityHint='Lets you choose to send an image or geolocation'
+                style={[styles.container]}
+                onPress={this.onActionPress}
+            >
+
                 <View style={[styles.wrapper, this.props.wrapperStyle]}>
                     <Text style={[styles.iconText, this.props.iconTextStyle]}>+</Text>
                 </View>
+
             </TouchableOpacity>
-        )
+        );
     }
 }
 
