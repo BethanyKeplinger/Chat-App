@@ -30,6 +30,7 @@ export default class Chat extends React.Component {
             user: {
                 _id: "",
                 name: "",
+                avatar: '',
             },
             isConnected: false,
             image: null,
@@ -120,6 +121,7 @@ export default class Chat extends React.Component {
                         user: {
                             _id: user.uid,
                             name: name,
+                            avatar: 'https://placeimg.com/140/140/any',
                         }
                     });
                 });
@@ -178,6 +180,7 @@ export default class Chat extends React.Component {
                 user: {
                     _id: data.user._id,
                     name: data.user.name,
+                    avatar: data.user.avatar,
                 },
                 image: data.image || null,
                 location: data.location || null,
@@ -249,7 +252,9 @@ export default class Chat extends React.Component {
                     user={{
                         _id: this.state.user._id,
                         name: this.state.name,
+                        avatar: this.state.user.avatar
                     }}
+                    showAvatarForEveryMessage={true}
                 />
                 {/*fixes out of place keyboard */}
                 {Platform.OS === 'android' ? <KeyboardAvoidingView behavior='height' /> : null}
