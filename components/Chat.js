@@ -5,6 +5,7 @@ import { GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 //local storage for react native
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import MapView from 'react-native-maps';
 
 import CustomActions from './CustomActions';
 
@@ -31,6 +32,8 @@ export default class Chat extends React.Component {
                 name: "",
             },
             isConnected: false,
+            image: null,
+            location: null,
         };
 
         const firebaseConfig = {
@@ -112,7 +115,7 @@ export default class Chat extends React.Component {
                         firebase.auth().signInAnonymously();
                     }
                     this.setState({
-                        _id: user.uid,
+                        uid: user.uid,
                         messages: [],
                         user: {
                             _id: user.uid,
@@ -133,7 +136,7 @@ export default class Chat extends React.Component {
         });
     }
 
-    //adding messages to database
+    //adding messages to firebase messages database
     addMessage() {
         const message = this.state.messages[0];
 
@@ -141,22 +144,12 @@ export default class Chat extends React.Component {
             _id: message._id,
             user: this.state.user,
             uid: this.state.uid,
-            text: message.text,
+            text: message.text || '',
             createdAt: message.createdAt,
+            image: message.image || null,
+            location: message.location || null,
         });
     };
-
-    // //adding new message to the collection
-    // addMessage = async (message) => {
-    //     await addDoc(this.referenceChatList, {
-    //         _id: message._id,
-    //         text: message.text || '',
-    //         createdAt: message.createdAt,
-    //         user: message.user,
-    //         // image: message.image || null,
-    //         // location: message.location || null,
-    //     });
-    // }
 
     //called when a user sends a message
     onSend(messages = []) {
@@ -186,6 +179,8 @@ export default class Chat extends React.Component {
                     _id: data.user._id,
                     name: data.user.name,
                 },
+                image: data.image || null,
+                location: data.location || null,
             });
         });
         this.setState({
@@ -195,6 +190,7 @@ export default class Chat extends React.Component {
 
     componentWillUnmount() {
         this.unsubscribe();
+        this.authUnsubscribe();
     }
 
     //disable ability to send new messages when offline
@@ -211,7 +207,7 @@ export default class Chat extends React.Component {
     //displays the communication features
     renderCustomActions = (props) => {
         return <CustomActions {...props} />;
-    }
+    };
 
     renderCustomView(props) {
         const { currentMessage } = props;
