@@ -42,7 +42,7 @@ git clone https://github.com/BethanyKeplinger/Chat-App.git
 </ul>
 
 <h2>Installation</h2>
-<h3>Setting up></h3>
+<h3>Setting up</h3>
 <ul>
   <li>Clone this repository</li>
   <li>In your CLI, navigate to the root directory of this project</li>
